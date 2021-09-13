@@ -1,15 +1,21 @@
-import logo from './logo.svg';
+// import logo from './logo.svg';
 import './App.css';
+import Navbar from './components/nav';
 
 import React, { Component } from 'react';
+import { News } from './components/news';
+// import  from './components/spinner';
 
 class App extends Component {
   c = 'John'
   render() {
     return (
+      <>
       <div>
-        <h1>Hello, I am {this.c}</h1>
+        <Navbar/>
+        <News pageSize='3' />
       </div>
+      </>
     );
   }
 }
