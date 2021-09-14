@@ -7,6 +7,7 @@ import InfiniteScroll from 'react-infinite-scroll-component';
 export class News extends Component {
 
     cars = []
+    art = []
 
     static defaultProps = {
         country: 'in',
@@ -35,6 +36,7 @@ export class News extends Component {
     }
 
     async fetchData(c){
+        this.props.setprogress(10);
         this.setState({
             loading: 'block'
         })
@@ -45,14 +47,14 @@ export class News extends Component {
         // if (c)
         let data = await fetch(url);
         let pdata = await data.json();
+        this.props.setprogress(50);
         let totalarticles = pdata.totalResults;
         if (totalarticles > pdata.articles.length){
             this.setState({
                 limitpage: pdata.articles.length < this.props.pageSize ? this.state.pages : Math.ceil(totalarticles/pdata.articles.length),
             })
-            console.log('increamenting pages', pdata.articles.length, pdata.totalResults);
         }
-        console.log('printing.........', this.state.limitpage, pdata.articles);
+        this.props.setprogress(70);
         this.setState({
             articles: pdata.articles,
             pages: c,
@@ -64,20 +66,17 @@ export class News extends Component {
             this.cars[l] = e
             l++
         })
-
+        this.props.setprogress(80);
         this.setState({
             articles: this.cars
         })
-        console.log('scart', this.cars)
-        console.log(this.state.pages, 'scroll', typeof(this.cars), typeof(this.state.articles));
-
+        this.props.setprogress(100);
     }
     
     fetchMoreData = () => {
         this.setState({
             pages: this.state.pages + 1
         })
-        console.log('fetchmore',this.state.pages);
         this.fetchData(this.state.pages);
 
 
@@ -87,29 +86,29 @@ export class News extends Component {
         this.fetchData();
     }
 
-    handlePre = ()=> {
-        console.log('Pre');
-        let pc = this.state.pages -1 === 0 ? 1 : this.state.pages - 1;
-        console.log('pages', pc);
-        if (pc < this.state.limitpage){
-            console.log('entering finale', pc, this.state.limitpage, this.state.pages)
-            this.fetchData(pc);
-        }
-    }
+    // handlePre = ()=> {
+    //     console.log('Pre');
+    //     let pc = this.state.pages -1 === 0 ? 1 : this.state.pages - 1;
+    //     console.log('pages', pc);
+    //     if (pc < this.state.limitpage){
+    //         console.log('entering finale', pc, this.state.limitpage, this.state.pages)
+    //         this.fetchData(pc);
+    //     }
+    // }
 
-    handleNe = ()=> {
-        console.log('Next');
-        let pc = this.state.pages + 1;
-        console.log('pages', pc);
-        if (pc <= this.state.limitpage){
-            this.setState({
-                pages: pc
-            })
-            console.log('entering finale', pc, this.state.limitpage, this.state.pages)
-            this.fetchData(pc);
-        }
+    // handleNe = ()=> {
+    //     console.log('Next');
+    //     let pc = this.state.pages + 1;
+    //     console.log('pages', pc);
+    //     if (pc <= this.state.limitpage){
+    //         this.setState({
+    //             pages: pc
+    //         })
+    //         console.log('entering finale', pc, this.state.limitpage, this.state.pages)
+    //         this.fetchData(pc);
+    //     }
 
-    }
+    // }
 
     render() {
         return (
