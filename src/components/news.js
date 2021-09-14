@@ -1,18 +1,37 @@
 import React, { Component } from "react";
 import NewsItem from "./NewsItem";
 import Spinner from '../components/spinner';
+import PropTypes from 'prop-types'
+import InfiniteScroll from 'react-infinite-scroll-component';
 
 export class News extends Component {
 
-    constructor(){
-        super();
+    cars = []
+
+    static defaultProps = {
+        country: 'in',
+        pgSize: 8,
+        category: 'general'
+    }
+
+    static propTypes = {
+        country: PropTypes.string,
+        pgSize: PropTypes.number,
+        category: PropTypes.string,
+        scrollArticles: PropTypes.array
+    }
+
+    constructor(props){
+        super(props);
         this.state = {
             articles: [],
             loading: 'block',
             pages: 0,
             disabled: true,
-            limitpage: 0
+            limitpage: 0,
+            scrollArticles: new Array
         }
+        document.title = `${this.props.category} - NewsMonkey`
     }
 
     async fetchData(c){
@@ -22,7 +41,7 @@ export class News extends Component {
         if (c === undefined){
             c = 1
         }
-        let url = `https://newsapi.org/v2/top-headlines?sources=techcrunch&apiKey=c7c2806d4e644bbe92cabf8de063a8c9&page=${c}&pageSize=${this.props.pageSize}`
+        let url = `https://newsapi.org/v2/top-headlines?country=${this.props.country}&category=${this.props.category}&apiKey=704604b549224d38bc52705bcdc6608d&page=${c}&pageSize=${this.props.pageSize}`
         // if (c)
         let data = await fetch(url);
         let pdata = await data.json();
@@ -33,13 +52,34 @@ export class News extends Component {
             })
             console.log('increamenting pages', pdata.articles.length, pdata.totalResults);
         }
-        console.log('printing.........', this.state.limitpage);
+        console.log('printing.........', this.state.limitpage, pdata.articles);
         this.setState({
             articles: pdata.articles,
             pages: c,
-            loading: 'none'
+            loading: 'none',
         })
-        console.log(this.state.pages);
+
+        pdata.articles.map((e, j) => {
+            let l = this.cars.length
+            this.cars[l] = e
+            l++
+        })
+
+        this.setState({
+            articles: this.cars
+        })
+        console.log('scart', this.cars)
+        console.log(this.state.pages, 'scroll', typeof(this.cars), typeof(this.state.articles));
+
+    }
+    
+    fetchMoreData = () => {
+        this.setState({
+            pages: this.state.pages + 1
+        })
+        console.log('fetchmore',this.state.pages);
+        this.fetchData(this.state.pages);
+
 
     }
 
@@ -74,21 +114,31 @@ export class News extends Component {
     render() {
         return (
             <div className='container my-3'>
-                <h2>NewsMonkey - Top headlines</h2>
+                <h2>NewsMonkey - Top {this.props.category} headlines</h2>
+
+                <InfiniteScroll
+                    dataLength={this.state.articles.length}
+                    next={this.fetchMoreData}
+                    hasMore={this.state.pages < this.state.limitpage}
+                    loader={<Spinner disp={this.state.loading} />}
+                ></InfiniteScroll>
+
                 <div className="row">
                     {this.state.articles.map((e)=>{
-                        return <div className="col-md-4" key={e.url ? e.url : 'UnTitled'}>
+                        return <div className="col-md-4 col-12" key={e.url ? e.url : 'UnTitled'}>
                         <NewsItem title={e.title ? e.title : 'UnTitled'} desc={e.description ? e.description : 'UnDescribed'}
                             imgurl = {e.urlToImage ? e.urlToImage : 'UnDescribed'}
-                            newsurl = {e.url ? e.url : 'UnTitled'}
+                            newsurl = {e.url ? e.url : 'UnTitled'} time={e.publishedAt ? e.publishedAt : 'UnTitled'}
+                            author = {e.author ? e.author : 'Unknown'} source={4}
                         />
                         </div> 
                     })}
                 </div>
-                <div className="container d-flex justify-content-between">
+                {/* <div className="container d-flex justify-content-between">
                     <button className='btn btn-dark' disabled={this.state.pages - 1 === 0 ? true : false} onClick={this.handlePre} type='button'>&larr; Previous</button>
                     <button className='btn btn-dark' disabled={this.state.pages === this.state.limitpage ? true: console.log('btn btn', this.state.pages, this.state.limitpage)} onClick={this.handleNe} type='button'>Next&rarr;</button>
                 </div>
+                */}
                 <Spinner disp={this.state.loading} />
             </div>
         )
