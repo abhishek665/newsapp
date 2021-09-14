@@ -3,89 +3,61 @@ import NewsItem from "./NewsItem";
 import Spinner from '../components/spinner';
 import PropTypes from 'prop-types'
 import InfiniteScroll from 'react-infinite-scroll-component';
+import { useEffect, useState } from "react";
 
-export class News extends Component {
+const News = (props)=> {
 
-    cars = []
-    art = []
+    const [articles, setarticles] = useState([])
+    const [loading, setloading] = useState('block')
+    const [pages, setpages] = useState(1)
+    const [disabled, setdisabled] = useState(true)
+    const [limitpage, setlimitpage] = useState(0)
+    const [cars, setCars] = useState([])
 
-    static defaultProps = {
-        country: 'in',
-        pgSize: 8,
-        category: 'general'
-    }
-
-    static propTypes = {
-        country: PropTypes.string,
-        pgSize: PropTypes.number,
-        category: PropTypes.string,
-        scrollArticles: PropTypes.array
-    }
-
-    constructor(props){
-        super(props);
-        this.state = {
-            articles: [],
-            loading: 'block',
-            pages: 0,
-            disabled: true,
-            limitpage: 0,
-            scrollArticles: new Array
-        }
-        document.title = `${this.props.category} - NewsMonkey`
-    }
-
-    async fetchData(c){
-        this.props.setprogress(10);
-        this.setState({
-            loading: 'block'
-        })
+    document.title = `${props.category} - NewsMonkey`
+    const fetchData = async (c)=>{
+        props.setprogress(10);
+        setloading('block');
         if (c === undefined){
             c = 1
         }
-        let url = `https://newsapi.org/v2/top-headlines?country=${this.props.country}&category=${this.props.category}&apiKey=704604b549224d38bc52705bcdc6608d&page=${c}&pageSize=${this.props.pageSize}`
+        let url = `https://newsapi.org/v2/top-headlines?country=${props.country}&category=${props.category}&apiKey=${props.apikey}&page=${c}&pageSize=${props.pageSize}`
         // if (c)
         let data = await fetch(url);
         let pdata = await data.json();
-        this.props.setprogress(50);
+        props.setprogress(50);
         let totalarticles = pdata.totalResults;
         if (totalarticles > pdata.articles.length){
-            this.setState({
-                limitpage: pdata.articles.length < this.props.pageSize ? this.state.pages : Math.ceil(totalarticles/pdata.articles.length),
-            })
+            setlimitpage(pdata.articles.length < props.pageSize ? pages : Math.ceil(totalarticles/pdata.articles.length))
         }
-        this.props.setprogress(70);
-        this.setState({
-            articles: pdata.articles,
-            pages: c,
-            loading: 'none',
-        })
+        props.setprogress(70);
 
-        pdata.articles.map((e, j) => {
-            let l = this.cars.length
-            this.cars[l] = e
-            l++
-        })
-        this.props.setprogress(80);
-        this.setState({
-            articles: this.cars
-        })
-        this.props.setprogress(100);
+        setarticles(pdata.articles)
+        setpages(c)
+        setloading('none')
+        props.setprogress(80);
+ 
+        setCars(cars.concat(pdata.articles))
+
+
+        props.setprogress(100);
     }
     
-    fetchMoreData = () => {
-        this.setState({
-            pages: this.state.pages + 1
-        })
-        this.fetchData(this.state.pages);
-
-
+    const fetchMoreData = () => {
+        console.log('pages1', pages)
+        setpages(pages + 1)
+        console.log('pages2', pages)
+        fetchData(pages + 1);
+        setarticles(cars)
     }
 
-    async componentDidMount(){
-        this.fetchData();
-    }
+    useEffect( () => {
+        fetchData(pages);
+    }, []);
 
+    useEffect(()=>{
+        setarticles(cars);
+    }, [articles])
     // handlePre = ()=> {
     //     console.log('Pre');
     //     let pc = this.state.pages -1 === 0 ? 1 : this.state.pages - 1;
@@ -110,20 +82,19 @@ export class News extends Component {
 
     // }
 
-    render() {
         return (
             <div className='container my-3'>
-                <h2>NewsMonkey - Top {this.props.category} headlines</h2>
+                <h2>NewsMonkey - Top {props.category} headlines</h2>
 
                 <InfiniteScroll
-                    dataLength={this.state.articles.length}
-                    next={this.fetchMoreData}
-                    hasMore={this.state.pages < this.state.limitpage}
-                    loader={<Spinner disp={this.state.loading} />}
+                    dataLength={articles.length}
+                    next={fetchMoreData}
+                    hasMore={pages < limitpage}
+                    loader={<Spinner disp={loading} />}
                 ></InfiniteScroll>
 
                 <div className="row">
-                    {this.state.articles.map((e)=>{
+                    {cars.map((e)=>{
                         return <div className="col-md-4 col-12" key={e.url ? e.url : 'UnTitled'}>
                         <NewsItem title={e.title ? e.title : 'UnTitled'} desc={e.description ? e.description : 'UnDescribed'}
                             imgurl = {e.urlToImage ? e.urlToImage : 'UnDescribed'}
@@ -138,8 +109,22 @@ export class News extends Component {
                     <button className='btn btn-dark' disabled={this.state.pages === this.state.limitpage ? true: console.log('btn btn', this.state.pages, this.state.limitpage)} onClick={this.handleNe} type='button'>Next&rarr;</button>
                 </div>
                 */}
-                <Spinner disp={this.state.loading} />
+                <Spinner disp={loading} />
             </div>
         )
-    }
 }
+
+ News.defaultProps = {
+    country: 'in',
+    pgSize: 8,
+    category: 'general'
+}
+
+News.propTypes = {
+    country: PropTypes.string,
+    pgSize: PropTypes.number,
+    category: PropTypes.string,
+    scrollArticles: PropTypes.array
+}
+
+export default News

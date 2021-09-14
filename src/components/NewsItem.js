@@ -1,15 +1,14 @@
-import React, { Component } from 'react';
+import React from 'react';
 import PropTypes from 'prop-types';
 
 
-export class NewsItem extends Component {
+const NewsItem = (props) => {
 
-    render() {
-        let { title, desc, imgurl, newsurl, author, time, source } = this.props;
+        let { title, desc, imgurl, newsurl, author, time, source } = props;
         return (
             <div>
                 <div className="card" style={{ width: '18rem', margin: 'auto' }}>
-                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-dark text-white">
+                    <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-dark text-white">
                         {source}
                     </span>
                     <img src={imgurl} className="card-img-top" alt="..." style={{ minHeight: '191px', maxHeight: '191px' }} />
@@ -23,7 +22,6 @@ export class NewsItem extends Component {
                 </div>
             </div>
         );
-    }
 }
 
 
